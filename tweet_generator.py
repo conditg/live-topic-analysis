@@ -6,7 +6,20 @@ import socket
 import sys
 import datetime
 
+'''
+This Data API Endpoint Interface listens on a 
+TCP socket which will be accessed by the data 
+aggregator. Additionally, a streaming API
+connection is established over HTTPS with 
+the endpoint provider.
 
+Once connections are established, a
+streaming response is converted to timestamped 
+strings that are sent to the data aggregator. 
+
+Control needs to be added on a separate TCP port
+
+'''
 def get_tweet_stream(auth_object):
     #formulate twitter request and
     #return streaming response object
@@ -37,7 +50,7 @@ def connect_stream_to_spark(http_resp, tcp_connection):
                 tweet_text = full_tweet['text']
             #Uncommend the below to see the data in the shell
             #print(f"Created at: {timestamp.encode('utf-8')}")
-            #print(f"Tweet Text: {tweet_text.encode('utf-8')}")
+            print(f"Tweet Text: {tweet_text.encode('utf-8')}")
             #print("------------------------------------------")
             tweet_info = json.dumps({
                             'timestamp':timestamp,
@@ -61,12 +74,12 @@ if __name__ == "__main__":
     TCP_IP = socket.gethostbyname(socket.gethostname())
     TCP_PORT = 9009
 
-    print(f"Host: {TCP_IP} :: Port {TCP_PORT}")
+    print(f"API Host:Port: {TCP_IP}:{TCP_PORT}")
     conn = None
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((TCP_IP, TCP_PORT))
     s.listen(1)
-    print(f"Waiting for TCP connection...")
+    print(f"Waiting for TCP connection with data aggregator on port {TCP_PORT}")
     conn, addr = s.accept()
     print(f"Connected... Starting getting tweets.")
     resp = get_tweet_stream(my_auth) 

@@ -6,17 +6,38 @@ import requests
 import json
 from datetime import datetime
 
+'''
+Data Aggregator
 
-TCP_REMOTE_HOST = "data_server" #docker container name of tweet generator
-TCP_PORT_INPUT = 9009 #must also be specified in the server file
+listens to a socket text stream provided by
+the api endpoint
+feeds the data to a spark streaming session
+
+if the spark streaming session is started
+prior to either the api endpoint interface
+or the web app server, it will error out.
+
+the spark pipeline performs operations on 
+the datastream and sends output to the app 
+server every N seconds. 
+
+The spark pipeline does not end gracefully
+
+'''
+
+TCP_API_INTERFACE = "tweet_gen" #docker contaier name of API endpoint interface
+TCP_API_INTERFACE_PORT = 9009 #must also be specified in the API endpoint interface
+
 TCP_REMOTE_APPSERVER = 'app_server' # docker container name of app server
 TCP_PORT_OUTPUT = 9991 # must be exposed by app server docker container
+#^Potentially change to "appserver_backend"
 
 #define a dict of topics to track and count.
 #The keys are words that will be counted as a mention of the topic.
 #The values are the "consolidated" topics that will ultimately be tracked and charted.
 #All lowercase
 trackwords = {'trump' : 'trump',
+	      'donald': 'trump',
               'cohen' : 'cohen'}
 
 
@@ -24,7 +45,7 @@ trackwords = {'trump' : 'trump',
 
 # create spark configuration
 conf = SparkConf()
-conf.setAppName("TwitterStreamApp")
+conf.setAppName("DataAggregator")
 
 # create spark context with the above configuration
 sc = SparkContext(conf=conf)
@@ -37,7 +58,7 @@ ssc = StreamingContext(sc, 5)
 ssc.checkpoint("cps")
 
 # read data from TCP
-dataStream = ssc.socketTextStream(TCP_REMOTE_HOST, TCP_PORT_INPUT)
+dataStream = ssc.socketTextStream(TCP_API_INTERFACE, TCP_API_INTERFACE_PORT)
 
 def send_to_app_server(rdd):
     #translate down to arrays to send to server
@@ -96,6 +117,3 @@ ssc.start()
 ssc.awaitTermination()
 #https://issues.apache.org/jira/browse/SPARK-17397
 ssc.stop()
-
-
-

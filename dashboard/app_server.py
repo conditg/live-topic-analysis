@@ -1,6 +1,28 @@
 from flask import Flask,jsonify,request
 from flask import render_template
 import ast
+'''
+This file defines a Flask app, it expects
+to run in a container. It relies on a global
+server state that contains the application
+running status and the topics being received
+for analysis.
+
+DESCRIPTION OF OPERATION
+The web app is defined in chart.html (including
+Chart.js) , which is sent upon the browser
+loading the root route.
+
+Browser will continually sends an
+asynchronous request for state to /getState
+until the serverstate is 'running'.
+
+While running, the data aggregator sends data
+via a post request to /updateData
+the browser continually sends an AJAX request
+for data to /refreshData
+
+'''
 
 app = Flask(__name__)
 
@@ -40,14 +62,8 @@ if __name__ == "__main__":
         app.run(host='0.0.0.0', port=9991) 
 
 
-
-
 #print(batch)
-
 #>>>{'trump':50, 'cohen':23}
 
-
-
 #print(state)
-
 #>>>{'trump': [50], 'cohen': [23], 'labels': ['']}

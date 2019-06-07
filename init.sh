@@ -1,2 +1,4 @@
-mkdir cps
-docker network create --driver bridge thinkful-net
+lta-init(){
+  mkdir cps
+  docker network create --driver bridge lta-net
+}
